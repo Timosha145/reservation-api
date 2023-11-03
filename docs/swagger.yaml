@@ -1,0 +1,194 @@
+openapi: 3.0.0
+info:
+  title: Reservations API
+  description: A simple API for managing reservations.
+  version: 1.0.0
+servers:
+  - url: http://localhost:8080
+paths:
+  /reservations:
+    get:
+      summary: Get a list of reservations
+      responses:
+        '200':
+          description: A list of reservations
+          content:
+            application/json:
+              example:
+                - id: 1
+                  phoneNumber: "+37245678988"
+                  name: "Boris Borisov"
+                  time: "2023-10-11 12:34"
+                  service: "Service A"
+                  carNumber: "101BYN"
+                - id: 2
+                  phoneNumber: "+37278915798"
+                  name: "Renat Renatov"
+                  time: "2023-09-21 13:36"
+                  service: "Service B"
+                  carNumber: "899RTY"
+      tags:
+        - Reservations
+    post:
+      summary: Create a new reservation
+      requestBody:
+        description: Reservation data
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                phoneNumber:
+                  type: string
+                  description: The phone number of the reservation
+                name:
+                  type: string
+                  description: The name of the person making the reservation
+                time:
+                  type: string
+                  description: The date and time of the reservation
+                service:
+                  type: string
+                  description: The service associated with the reservation
+                carNumber:
+                  type: string
+                  description: The car number associated with the reservation
+            example:
+              phoneNumber: "+37255556666"
+              name: "Emily Smith"
+              time: "2023-08-25 14:20"
+              service: "Service A"
+              carNumber: "777PPP"
+      responses:
+        '201':
+          description: The created reservation
+          content:
+            application/json:
+              example:
+                id: 11
+                phoneNumber: "+37255556666"
+                name: "Emily Smith"
+                time: "2023-08-25 14:20"
+                service: "Service A"
+                carNumber: "777PPP"
+      tags:
+        - Reservations
+  /reservations/{id}:
+    get:
+      summary: Get a reservation by ID
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+          description: The ID of the reservation
+      responses:
+        '200':
+          description: A reservation
+          content:
+            application/json:
+              example:
+                id: 1
+                phoneNumber: "+37245678988"
+                name: "Boris Borisov"
+                time: "2023-10-11 12:34"
+                service: "Service A"
+                carNumber: "101BYN"
+        '404':
+          description: Reservation not found
+          content:
+            application/json:
+              example:
+                error: Reservation not found
+      tags:
+        - Reservations
+    delete:
+      summary: Delete a reservation by ID
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+          description: The ID of the reservation to delete
+      responses:
+        '204':
+          description: No content
+          content:
+            application/json:
+              example:
+                error: No content
+        '404':
+          description: Reservation not found
+          content:
+            application/json:
+              example:
+                error: Reservation not found
+      tags:
+        - Reservations
+    put:
+      summary: Update a reservation by ID
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+          description: The ID of the reservation to update
+      requestBody:
+        description: Reservation data
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                phoneNumber:
+                  type: string
+                  description: The phone number of the reservation
+                name:
+                  type: string
+                  description: The name of the person making the reservation
+                time:
+                  type: string
+                  description: The date and time of the reservation
+                service:
+                  type: string
+                  description: The service associated with the reservation
+                carNumber:
+                  type: string
+                  description: The car number associated with the reservation
+            example:
+              phoneNumber: "+37255556666"
+              name: "Emily Smith"
+              time: "2023-08-25 14:20"
+              service: "Service A"
+              carNumber: "777PPP"
+      responses:
+        '200':
+          description: The updated reservation
+          content:
+            application/json:
+              example:
+                id: 1
+                phoneNumber: "+37255556666"
+                name: "Emily Smith"
+                time: "2023-08-25 14:20"
+                service: "Service A"
+                carNumber: "777PPP"
+        '400':
+          description: Invalid request data
+          content:
+            application/json:
+              example:
+                error: Invalid request data
+        '404':
+          description: Reservation not found
+          content:
+            application/json:
+              example:
+                error: Reservation not found
+      tags:
+        - Reservations
