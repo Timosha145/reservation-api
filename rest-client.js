@@ -7,16 +7,31 @@ const app = Vue.createApp({
                 name: '',
                 time: '',
                 service: '',
-                carNumber: ''
+                carNumber: '',
             },
             editingReservation: null,
-            isEditing: false
+            isEditing: false,
+            isAdmin: 0,
         };
     },
     async created() {
+        await this.loadUser();
         this.reservations = await (await fetch('http://localhost:8080/reservations')).json();
     },
     methods: {
+        async loadUser() {
+            try {
+                const response = await fetch('http://localhost:8080/get-user-info');
+                if (response.ok) {
+                    const userData = await response.json();
+                    this.isAdmin = userData.isAdmin ? 1 : 0;
+                } else {
+                    console.error('Error loading user data:', response.statusText);
+                }
+            } catch (error) {
+                console.error('Error loading user data:', error);
+            }
+        },
         deleteReservation: async function (id) {
             const reservationToDelete = this.reservations.find(reservation => reservation.id === id);
             if (!reservationToDelete) {
@@ -71,6 +86,10 @@ const app = Vue.createApp({
             this.editingReservation = null;
             this.isEditing = false;
         },
+        cancelEdit() {
+            this.editingReservation = null;
+            this.isEditing = false;
+        },
         async saveEdit(reservation) {
             try {
                 const response = await fetch(`http://localhost:8080/reservations/${reservation.id}`, {
@@ -93,6 +112,21 @@ const app = Vue.createApp({
                 }
             } catch (error) {
                 console.error('Unable to save edit:', error);
+            }
+        },
+        async logout() {
+            try {
+                const response = await fetch('http://localhost:8080/logout', {
+                    method: 'POST',
+                });
+
+                if (response.ok) {
+                    window.location.href = 'login.html';
+                } else {
+                    console.error('Error logging out:', response.statusText);
+                }
+            } catch (error) {
+                console.error('Error logging out:', error);
             }
         },
     }

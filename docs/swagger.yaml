@@ -1,11 +1,110 @@
 openapi: 3.0.0
 info:
   title: Reservations API
-  description: A simple API for managing reservations.
+  description: A simple API for managing reservations and user authentication.
   version: 1.0.0
 servers:
   - url: http://localhost:8080
 paths:
+  /auth/register:
+    post:
+      summary: Register a new user
+      requestBody:
+        description: User registration data
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                username:
+                  type: string
+                  description: The username of the new user
+                password:
+                  type: string
+                  description: The password of the new user
+              required:
+                - username
+                - password
+            example:
+              username: "new_user"
+              password: "password123"
+      responses:
+        '201':
+          description: Registration successful
+          content:
+            application/json:
+              example:
+                message: 'Registration successful'
+                user:
+                  username: "new_user"
+                  permissions: []
+        '400':
+          description: Invalid user data
+          content:
+            application/json:
+              example:
+                error: 'Both username and password are required'
+        '409':
+          description: Username already exists
+          content:
+            application/json:
+              example:
+                error: 'Username already exists'
+
+  /auth/login:
+    post:
+      summary: User login
+      parameters:
+        - name: username
+          in: query
+          required: true
+          schema:
+            type: string
+          description: The username for login
+        - name: password
+          in: query
+          required: true
+          schema:
+            type: string
+          description: The password for login
+      responses:
+        '200':
+          description: Login successful
+          content:
+            application/json:
+              example:
+                message: 'Login successful'
+                user:
+                  username: "existing_user"
+                  permissions: []
+        '400':
+          description: Invalid login data
+          content:
+            application/json:
+              example:
+                error: 'Both username and password are required'
+        '401':
+          description: Invalid username or password
+          content:
+            application/json:
+              example:
+                error: 'Invalid username or password'
+
+  /auth/checklogin:
+    get:
+      summary: Check user login status
+      responses:
+        '200':
+          description: User is logged in
+          content:
+            application/json:
+              example:
+                message: 'User is logged in'
+                user:
+                  username: "existing_user"
+                  permissions: []
+
   /reservations:
     get:
       summary: Get a list of reservations
@@ -82,113 +181,4 @@ paths:
           in: path
           required: true
           schema:
-            type: integer
-          description: The ID of the reservation
-      responses:
-        '200':
-          description: A reservation
-          content:
-            application/json:
-              example:
-                id: 1
-                phoneNumber: "+37245678988"
-                name: "Boris Borisov"
-                time: "2023-10-11 12:34"
-                service: "Service A"
-                carNumber: "101BYN"
-        '404':
-          description: Reservation not found
-          content:
-            application/json:
-              example:
-                error: Reservation not found
-      tags:
-        - Reservations
-    delete:
-      summary: Delete a reservation by ID
-      parameters:
-        - name: id
-          in: path
-          required: true
-          schema:
-            type: integer
-          description: The ID of the reservation to delete
-      responses:
-        '204':
-          description: No content
-          content:
-            application/json:
-              example:
-                error: No content
-        '404':
-          description: Reservation not found
-          content:
-            application/json:
-              example:
-                error: Reservation not found
-      tags:
-        - Reservations
-    put:
-      summary: Update a reservation by ID
-      parameters:
-        - name: id
-          in: path
-          required: true
-          schema:
-            type: integer
-          description: The ID of the reservation to update
-      requestBody:
-        description: Reservation data
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-              properties:
-                phoneNumber:
-                  type: string
-                  description: The phone number of the reservation
-                name:
-                  type: string
-                  description: The name of the person making the reservation
-                time:
-                  type: string
-                  description: The date and time of the reservation
-                service:
-                  type: string
-                  description: The service associated with the reservation
-                carNumber:
-                  type: string
-                  description: The car number associated with the reservation
-            example:
-              phoneNumber: "+37255556666"
-              name: "Emily Smith"
-              time: "2023-08-25 14:20"
-              service: "Service A"
-              carNumber: "777PPP"
-      responses:
-        '200':
-          description: The updated reservation
-          content:
-            application/json:
-              example:
-                id: 1
-                phoneNumber: "+37255556666"
-                name: "Emily Smith"
-                time: "2023-08-25 14:20"
-                service: "Service A"
-                carNumber: "777PPP"
-        '400':
-          description: Invalid request data
-          content:
-            application/json:
-              example:
-                error: Invalid request data
-        '404':
-          description: Reservation not found
-          content:
-            application/json:
-              example:
-                error: Reservation not found
-      tags:
-        - Reservations
+            type:

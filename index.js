@@ -5,10 +5,103 @@ const cors = require('cors');
 const swaggerUi = require('swagger-ui-express');
 const yamls = require('yamljs');
 const swaggerDocument = yamls.load('./docs/swagger.yaml');
+const session = require('express-session');
+const fs = require('fs');
 
 app.use(cors());
 app.use(express.json());
 app.use(express.static(__dirname));
+
+app.use(session({
+    secret: 'your-secret-key',
+    resave: false,
+    saveUninitialized: true,
+}));
+
+let users = [];
+try {
+    const usersData = fs.readFileSync('users.json');
+    users = JSON.parse(usersData);
+} catch (error) {
+    console.error('Error loading users:', error);
+}
+
+app.get('/check-login', (req, res) => {
+    if (req.session.user) {
+        res.status(200).json({
+            isLoggedIn: true,
+            user: req.session.user,
+        });
+    } else {
+        res.status(200).json({
+            isLoggedIn: false,
+            user: null,
+        });
+    }
+});
+
+app.post('/register', (req, res) => {
+    const { username, password } = req.body;
+
+    if (!username || !password) {
+        return res.status(400).send({ error: 'Both username and password are required' });
+    }
+
+    if (users.find(user => user.username === username)) {
+        return res.status(409).send({ error: 'Username already exists' });
+    }
+
+    const newUser = { username, password, permissions: 0 };
+    users.push(newUser);
+
+    fs.writeFileSync('users.json', JSON.stringify(users, null, 2));
+
+    req.session.user = { username, permissions: 0 };
+
+    res.status(201).send({ message: 'Registration successful', user: newUser });
+});
+
+app.post('/login', (req, res) => {
+    const { username, password } = req.body;
+
+    if (!username || !password) {
+        return res.status(400).send({ error: 'Both username and password are required' });
+    }
+
+    const user = users.find(user => user.username === username && user.password === password);
+
+    if (!user) {
+        return res.status(401).send({ error: 'Invalid username or password' });
+    }
+
+    req.session.user = { username, isAdmin: user.permissions };
+
+    res.send({ message: 'Login successful', user });
+});
+
+app.get('/get-user-info', (req, res) => {
+    if (req.session.user) {
+        const userInfo = {
+            username: req.session.user.username,
+            isAdmin: req.session.user.isAdmin || 0,
+        };
+        res.status(200).json(userInfo);
+    } else {
+        res.status(401).send({ error: 'User not authenticated' });
+    }
+});
+
+app.post('/logout', (req, res) => {
+    req.session.destroy();
+    res.send({ message: 'Logout successful' });
+});
+
+app.use((req, res, next) => {
+    if (!req.session.user) {
+        return res.status(401).send({ error: 'Unauthorized' });
+    }
+    next();
+});
 
 const reservations = [
     {
