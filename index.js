@@ -26,6 +26,14 @@ try {
     console.error('Error loading users:', error);
 }
 
+let reservations = [];
+try {
+    const reservationsData = fs.readFileSync('reservations.json');
+    reservations = JSON.parse(reservationsData);
+} catch (error) {
+    console.error('Error loading reservations:', error);
+}
+
 app.get('/check-login', (req, res) => {
     if (req.session.user) {
         res.status(200).json({
@@ -102,73 +110,6 @@ app.use((req, res, next) => {
     }
     next();
 });
-
-const reservations = [
-    {
-        "id": "1",
-        "phoneNumber": "+37245678988",
-        "name": "Boris Borisov",
-        "time": "2023-10-11 12:34",
-        "service": "Service A",
-        "carNumber": "101BYN"
-    },
-    {
-        "id": "2",
-        "phoneNumber": "+37278915798",
-        "name": "Renat Renatov",
-        "time": "2023-09-21 13:36",
-        "service": "Service B",
-        "carNumber": "899RTY"
-    },
-    {
-        "id": "3",
-        "phoneNumber": "+37212345678",
-        "name": "Alice Johnson",
-        "time": "2023-09-15 10:15",
-        "service": "Service A",
-        "carNumber": "ABC123"
-    },
-    {
-        "id": "4",
-        "phoneNumber": "+37298765432",
-        "name": "John Doe",
-        "time": "2023-08-30 16:45",
-        "service": "Service B",
-        "carNumber": "XYZ789"
-    },
-    {
-        "id": "5",
-        "phoneNumber": "+37255556666",
-        "name": "Emily Smith",
-        "time": "2023-08-25 14:20",
-        "service": "Service A",
-        "carNumber": "777PPP"
-    },
-    {
-        "id": "6",
-        "phoneNumber": "+37233334444",
-        "name": "Maria Garcia",
-        "time": "2023-08-14 09:30",
-        "service": "Service B",
-        "carNumber": "222BBB"
-    },
-    {
-        "id": "7",
-        "phoneNumber": "+37288889999",
-        "name": "Michael Brown",
-        "time": "2023-08-10 11:55",
-        "service": "Service A",
-        "carNumber": "555JJJ"
-    },
-    {
-        "id": "8",
-        "phoneNumber": "+37266667777",
-        "name": "Sophia Taylor",
-        "time": "2023-07-29 15:10",
-        "service": "Service B",
-        "carNumber": "999ZZZ"
-    }
-];
 
 app.get('/reservations', (req, res) => {
     res.send(reservations);

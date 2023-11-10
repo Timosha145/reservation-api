@@ -8,5 +8,10 @@
     "username": "test",
     "password": "test",
     "permissions": 1
+  },
+  {
+    "username": "email@email.com",
+    "password": "email@email.com",
+    "permissions": 0
   }
 ]
