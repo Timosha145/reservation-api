@@ -1,0 +1,122 @@
+[
+    {
+        "id": "1",
+        "clientId": "2",
+        "phoneNumber": "+37245678988",
+        "name": "Boris Borisov",
+        "time": "2023-10-11 12:34",
+        "salon": "Salon A",
+        "service": {
+            "name": "Oil Change",
+            "price": 40.0,
+            "description": "Regular oil change service",
+            "duration": "1 hour"
+        },
+        "carNumber": "101BYN"
+    },
+    {
+        "id": "2",
+        "clientId": "0",
+        "phoneNumber": "+37278915798",
+        "name": "Renat Renatov",
+        "time": "2023-09-21 13:36",
+        "salon": "Salon B",
+        "service": {
+            "name": "Brake Inspection",
+            "price": 30.0,
+            "description": "Thorough inspection of brake system",
+            "duration": "45 minutes"
+        },
+        "carNumber": "899RTY"
+    },
+    {
+        "id": "3",
+        "clientId": "0",
+        "phoneNumber": "+37212345678",
+        "name": "Alice Johnson",
+        "time": "2023-09-15 10:15",
+        "salon": "Salon A",
+        "service": {
+            "name": "Oil Change",
+            "price": 40.0,
+            "description": "Regular oil change service",
+            "duration": "1 hour"
+        },
+        "carNumber": "ABC123"
+    },
+    {
+        "id": "4",
+        "clientId": "0",
+        "phoneNumber": "+37298765432",
+        "name": "John Doe",
+        "time": "2023-08-30 16:45",
+        "salon": "Salon B",
+        "service": {
+            "name": "Brake Inspection",
+            "price": 30.0,
+            "description": "Thorough inspection of brake system",
+            "duration": "45 minutes"
+        },
+        "carNumber": "XYZ789"
+    },
+    {
+        "id": "5",
+        "clientId": "0",
+        "phoneNumber": "+37255556666",
+        "name": "Emily Smith",
+        "time": "2023-08-25 14:20",
+        "salon": "Salon A",
+        "service": {
+            "name": "Oil Change",
+            "price": 40.0,
+            "description": "Regular oil change service",
+            "duration": "1 hour"
+        },
+        "carNumber": "777PPP"
+    },
+    {
+        "id": "6",
+        "clientId": "0",
+        "phoneNumber": "+37233334444",
+        "name": "Maria Garcia",
+        "time": "2023-08-14 09:30",
+        "salon": "Salon B",
+        "service": {
+            "name": "Brake Inspection",
+            "price": 30.0,
+            "description": "Thorough inspection of brake system",
+            "duration": "45 minutes"
+        },
+        "carNumber": "222BBB"
+    },
+    {
+        "id": "7",
+        "clientId": "0",
+        "phoneNumber": "+37288889999",
+        "name": "Michael Brown",
+        "time": "2023-08-10 11:55",
+        "salon": "Salon A",
+        "service": {
+            "name": "Oil Change",
+            "price": 40.0,
+            "description": "Regular oil change service",
+            "duration": "1 hour"
+        },
+        "carNumber": "555JJJ"
+    },
+    {
+        "id": "8",
+        "clientId": "0",
+        "phoneNumber": "+37266667777",
+        "name": "Sophia Taylor",
+        "time": "2023-07-29 15:10",
+        "salon": "Salon B",
+        "service": {
+            "name": "Brake Inspection",
+            "price": 30.0,
+            "description": "Thorough inspection of brake system",
+            "duration": "45 minutes"
+        },
+        "carNumber": "999ZZZ"
+    }
+]

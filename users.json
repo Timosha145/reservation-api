@@ -1,16 +1,15 @@
 [
   {
-    "username": "testik",
-    "password": "testik",
-    "permissions": 0
-  },
-  {
-    "username": "test",
-    "password": "test",
+    "id": 1,
+    "name": "Test Testov",
+    "email": "test@test.com",
+    "password": "test@test.com",
     "permissions": 1
   },
   {
-    "username": "email@email.com",
+    "id": 2,
+    "name": "Email Emailov",
+    "email": "email@email.com",
     "password": "email@email.com",
     "permissions": 0
   }

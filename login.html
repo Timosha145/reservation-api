@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Login</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-T3c6CoIi6uLrA9TneNEoa7RxnatzjcDSCmG1MXxSR1GAsXEV/Dwwykc2MPK8M2HN" crossorigin="anonymous">
+</head>
+<body>
+<div id="login-app" class="container mt-5">
+  <div class="row">
+    <div class="col-md-6 offset-md-3">
+      <h2 class="mb-4">Login</h2>
+      <h4>Admin user: <span class="copy" onclick="copyToClipboard('test@test.com')">[test@test.com]</span></h4>
+      <h4>Basic user: <span class="copy" onclick="copyToClipboard('email@email.com')">[email@email.com]</span></h4>
+      <form @submit.prevent="loginUser">
+        <div class="mb-3">
+          <label for="email" class="form-label">Email</label>
+          <input type="text" v-model="email" class="form-control" id="email" required>
+        </div>
+        <div class="mb-3">
+          <label for="password" class="form-label">Password</label>
+          <input type="password" v-model="password" class="form-control" id="password" required>
+        </div>
+        <button type="submit" class="btn btn-primary" @click="loginUser">Login</button>
+        <p class="mt-3">Don't have an account? <a href="registration.html">Register here</a></p>
+      </form>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/vue@3.2.0/dist/vue.global.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdn.jsdelivr.net/clipboard.js/2.0.8/clipboard.min.js"></script>
+<script src="login.js"></script>
+
+<style>
+    .copy {
+      cursor: pointer;
+      text-decoration: underline;
+      color: blue;
+    }
+  
+    .copy:hover {
+      color: red;
+    }
+  </style>
+
+</body>
+</html>

@@ -48,41 +48,51 @@ app.get('/check-login', (req, res) => {
     }
 });
 
+app.get('/get-last-user', (req, res) => {
+    const lastUser = getLastUser();
+    
+    if (lastUser) {
+        res.status(200).json(lastUser);
+    } else {
+        res.status(404).json({ error: 'No users found' });
+    }
+});
+
 app.post('/register', (req, res) => {
-    const { username, password } = req.body;
+    const { name, email, password } = req.body;
 
-    if (!username || !password) {
-        return res.status(400).send({ error: 'Both username and password are required' });
+    if (!name || !email || !password) {
+        return res.status(400).send({ error: 'Name, email, and password are required' });
     }
 
-    if (users.find(user => user.username === username)) {
-        return res.status(409).send({ error: 'Username already exists' });
+    if (users.find(user => user.email === email)) {
+        return res.status(409).send({ error: 'This email has been already taken' });
     }
 
-    const newUser = { username, password, permissions: 0 };
+    const newUser = { id: getNextUserId(), name, email, password, permissions: 0 };
     users.push(newUser);
 
     fs.writeFileSync('users.json', JSON.stringify(users, null, 2));
 
-    req.session.user = { username, permissions: 0 };
+    req.session.user = { id: newUser.id, name, permissions: 0 };
 
     res.status(201).send({ message: 'Registration successful', user: newUser });
 });
 
 app.post('/login', (req, res) => {
-    const { username, password } = req.body;
+    const { email, password } = req.body;
 
-    if (!username || !password) {
-        return res.status(400).send({ error: 'Both username and password are required' });
+    if (!email || !password) {
+        return res.status(400).send({ error: 'Both email and password are required' });
     }
 
-    const user = users.find(user => user.username === username && user.password === password);
+    const user = users.find(user => user.email === email && user.password === password);
 
     if (!user) {
-        return res.status(401).send({ error: 'Invalid username or password' });
+        return res.status(401).send({ error: 'Invalid email or password' });
     }
 
-    req.session.user = { username, isAdmin: user.permissions };
+    req.session.user = { id: user.id, email, isAdmin: user.permissions };
 
     res.send({ message: 'Login successful', user });
 });
@@ -90,7 +100,8 @@ app.post('/login', (req, res) => {
 app.get('/get-user-info', (req, res) => {
     if (req.session.user) {
         const userInfo = {
-            username: req.session.user.username,
+            id: req.session.user.id,
+            email: req.session.user.email,
             isAdmin: req.session.user.isAdmin || 0,
         };
         res.status(200).json(userInfo);
@@ -112,7 +123,9 @@ app.use((req, res, next) => {
 });
 
 app.get('/reservations', (req, res) => {
-    res.send(reservations);
+    const userReservations = reservations;
+
+    res.send(userReservations);
 });
 
 app.get('/reservations/:id', (req, res) => {
@@ -122,11 +135,15 @@ app.get('/reservations/:id', (req, res) => {
         return res.status(404).send({ error: "Reservation not found" });
     }
 
+    if (!req.session.user.isAdmin && reservation.username !== req.session.user.username) {
+        return res.status(403).send({ error: "Access forbidden" });
+    }
+
     res.send(reservation);
 });
 
 app.post('/reservations', (req, res) => {
-    if (!req.body.phoneNumber || !req.body.name || !req.body.time || !req.body.service || !req.body.carNumber) {
+    if (!req.body.phoneNumber || !req.body.name || !req.body.time || !req.body.salon || !req.body.service || !req.body.carNumber) {
         return res.status(400).send({ error: 'One or all params are missing' });
     }
 
@@ -134,9 +151,11 @@ app.post('/reservations', (req, res) => {
 
     const reservation = {
         id: newId,
+        username: req.session.user.username,
         phoneNumber: req.body.phoneNumber,
         name: req.body.name,
         time: req.body.time,
+        salon: req.body.salon,
         service: req.body.service,
         carNumber: req.body.carNumber
     };
@@ -149,15 +168,52 @@ app.post('/reservations', (req, res) => {
 });
 
 app.delete('/reservations/:id', (req, res) => {
-    const index = reservations.findIndex(r => r.id === req.params.id);
+    const id = req.params.id;
+    const index = reservations.findIndex(r => r.id === id);
 
     if (index === -1) {
         return res.status(404).send({ error: "Reservation not found" });
     }
 
+    if (!req.session.user.isAdmin && reservations[index].username !== req.session.user.username) {
+        return res.status(403).send({ error: "Access forbidden" });
+    }
+
     reservations.splice(index, 1);
 
     res.status(204).send();
+});
+
+app.put('/reservations/:id', (req, res) => {
+    const id = req.params.id;
+    const updatedReservation = req.body;
+
+    if (!updatedReservation.phoneNumber || !updatedReservation.name || !updatedReservation.time || !updatedReservation.salon || !updatedReservation.service || !updatedReservation.carNumber) {
+        return res.status(400).send({ error: 'One or all params are missing' });
+    }
+
+    const index = reservations.findIndex(r => r.id === id);
+
+    if (index === -1) {
+        return res.status(404).send({ error: "Reservation not found" });
+    }
+
+    if (!req.session.user.isAdmin && reservations[index].username !== req.session.user.username) {
+        return res.status(403).send({ error: "Access forbidden" });
+    }
+
+    reservations[index] = {
+        id: id,
+        username: req.session.user.username,
+        phoneNumber: updatedReservation.phoneNumber,
+        name: updatedReservation.name,
+        time: updatedReservation.time,
+        salon: updatedReservation.salon,
+        service: updatedReservation.service,
+        carNumber: updatedReservation.carNumber
+    };
+
+    res.send(reservations[index]);
 });
 
 app.use('/docs', swaggerUi.serve, swaggerUi.setup(swaggerDocument));
@@ -171,28 +227,23 @@ function getBaseUrl(req) {
         ? 'https' : 'http' + `://${req.headers.host}`;
 }
 
-app.put('/reservations/:id', (req, res) => {
-    const id = req.params.id;
-    const updatedReservation = req.body;
+function getNextUserId() {
+    const lastUser = getLastUser();
+    return lastUser ? lastUser.id + 1 : 1;
+}
 
-    if (!updatedReservation.phoneNumber || !updatedReservation.name || !updatedReservation.time || !updatedReservation.service || !updatedReservation.carNumber) {
-        return res.status(400).send({ error: 'One or all params are missing' });
+function getLastUser() {
+    try {
+        const usersData = fs.readFileSync('users.json');
+        const users = JSON.parse(usersData);
+
+        if (users.length > 0) {
+            return users[users.length - 1];
+        } else {
+            return null;
+        }
+    } catch (error) {
+        console.error('Error getting last user:', error);
+        return null;
     }
-
-    const index = reservations.findIndex(r => r.id === id);
-
-    if (index === -1) {
-        return res.status(404).send({ error: "Reservation not found" });
-    }
-
-    reservations[index] = {
-        id: id,
-        phoneNumber: updatedReservation.phoneNumber,
-        name: updatedReservation.name,
-        time: updatedReservation.time,
-        service: updatedReservation.service,
-        carNumber: updatedReservation.carNumber
-    };
-
-    res.send(reservations[index]);
-});
+}

@@ -4,18 +4,24 @@ const app = Vue.createApp({
             reservations: [],
             newReservation: {
                 phoneNumber: '',
-                name: '',
+                name: 'фцв',
                 time: '',
+                salon: '',
                 service: '',
                 carNumber: '',
             },
+            services: [],
             editingReservation: null,
             isEditing: false,
             isAdmin: 0,
+            userId: null,
+            userName: null
         };
     },
-    async created() {
+    async mounted() {
+        await this.loadServices();
         await this.loadUser();
+        //this.newReservation.name = this.userName;
         this.reservations = await (await fetch('http://localhost:8080/reservations')).json();
     },
     methods: {
@@ -25,6 +31,8 @@ const app = Vue.createApp({
                 if (response.ok) {
                     const userData = await response.json();
                     this.isAdmin = userData.isAdmin ? 1 : 0;
+                    this.userId = userData.id;
+                    userName = this.userName;
                 } else {
                     console.error('Error loading user data:', response.statusText);
                 }
@@ -48,13 +56,21 @@ const app = Vue.createApp({
                 console.error('Couldnt delete a reservation:', error);
             }
         },
-        addReservation: async function () {
-            if (!this.newReservation.phoneNumber || !this.newReservation.name || !this.newReservation.time || !this.newReservation.service || !this.newReservation.carNumber) {
+        async addReservation() {
+            if (!this.newReservation.phoneNumber || !this.newReservation.name || !this.newReservation.time || !this.newReservation.salon || !this.newReservation.service || !this.newReservation.carNumber) {
                 alert('Please fill in all fields with valid data.');
                 return;
             }
-
+        
             try {
+                const selectedService = this.services.find(service => service.name === this.newReservation.service);
+                if (!selectedService) {
+                    console.error('Selected service not found:', this.newReservation.service);
+                    return;
+                }
+        
+                this.newReservation.service = selectedService;
+        
                 const response = await fetch('http://localhost:8080/reservations', {
                     method: 'POST',
                     headers: {
@@ -70,6 +86,7 @@ const app = Vue.createApp({
                         phoneNumber: '',
                         name: '',
                         time: '',
+                        salon: '',
                         service: '',
                         carNumber: ''
                     };
@@ -80,11 +97,15 @@ const app = Vue.createApp({
         },
         editReservation(reservation) {
             this.editingReservation = { ...reservation };
+            const selectedService = this.services.find(service => service.name == this.editingReservation.service.name);
+        
+            if (selectedService) {
+                this.editingReservation.service = selectedService;
+            } else {
+                console.error('Selected service not found:', this.editingReservation.service);
+            }
+        
             this.isEditing = true;
-        },
-        cancelEdit() {
-            this.editingReservation = null;
-            this.isEditing = false;
         },
         cancelEdit() {
             this.editingReservation = null;
@@ -129,5 +150,17 @@ const app = Vue.createApp({
                 console.error('Error logging out:', error);
             }
         },
+        async loadServices() {
+            try {
+                const response = await fetch('services.json');
+                if (response.ok) {
+                    this.services = await response.json();
+                } else {
+                    console.error('Error loading services:', response.statusText);
+                }
+            } catch (error) {
+                console.error('Error loading services:', error);
+            }
+        }
     }
 }).mount('#app');
