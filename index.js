@@ -280,7 +280,7 @@ app.put('/services/:id', (req, res) => {
     const index = services.findIndex(s => s.id === id);
 
     if (index === -1) {
-        return res.status(404).send({ error: "Service not found" });
+        return res.status(404).send({ error: `Service not found with id ${index}` });
     }
 
     services[index] = {
@@ -301,7 +301,7 @@ app.delete('/services/:id', (req, res) => {
     const index = services.findIndex(s => s.id === id);
 
     if (index === -1) {
-        return res.status(404).send({ error: "Service not found" });
+        return res.status(404).send({ error: `Service not found with index: ${index}` });
     }
 
     services.splice(index, 1);

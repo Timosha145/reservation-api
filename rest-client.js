@@ -10,9 +10,15 @@ const app = Vue.createApp({
                 time: '',
                 carNumber: '',
             },
+            newService: {
+                name: '',
+                price: '',
+                description: '',
+                duration: '',
+            },
             services: [],
             newUsers: [],
-            newService: {},
+            editingService: null,
             editingReservation: null,
             isEditing: false,
             isAdmin: 0,
@@ -100,13 +106,13 @@ const app = Vue.createApp({
         editReservation(reservation) {
             this.editingReservation = { ...reservation };
             const selectedService = this.services.find(service => service.name == this.editingReservation.service.name);
-        
+
             if (selectedService) {
                 this.editingReservation.service = selectedService;
             } else {
                 console.error('Selected service not found:', this.editingReservation.service);
             }
-        
+
             this.isEditing = true;
         },
         cancelEdit() {
@@ -160,7 +166,7 @@ const app = Vue.createApp({
         },
         async loadServices() {
             try {
-                const response = await fetch('services.json');
+                const response = await fetch('http://localhost:8080/services'); // Update the URL
                 if (response.ok) {
                     this.services = await response.json();
                 } else {
@@ -175,9 +181,9 @@ const app = Vue.createApp({
                 const response = await fetch(`http://localhost:8080/services/${service.id}`, {
                     method: 'PUT',
                     headers: {
-                        'Content-Type': 'application/json'
+                        'Content-Type': 'application/json',
                     },
-                    body: JSON.stringify(service)
+                    body: JSON.stringify(this.editingService),
                 });
 
                 if (response.ok) {
@@ -186,6 +192,9 @@ const app = Vue.createApp({
                     if (index !== -1) {
                         this.services[index] = updatedService;
                     }
+
+                    this.isEditing = false;
+                    this.editingService = null;
                 } else {
                     console.error('Error saving service edit:', response.statusText);
                 }
@@ -204,11 +213,11 @@ const app = Vue.createApp({
             }
         },
         editService(service) {
-            this.editingService = { ...service };
+            this.editingService = service;
             this.isEditing = true;
         },
         async saveNewService() {
-            if (!this.editingService.name || !this.editingService.price || !this.editingService.description || !this.editingService.duration) {
+            if (!this.newService.name || !this.newService.price || !this.newService.description || !this.newService.duration) {
                 alert('Please fill in all fields with valid data.');
                 return;
             }
@@ -219,14 +228,14 @@ const app = Vue.createApp({
                     headers: {
                         'Content-Type': 'application/json',
                     },
-                    body: JSON.stringify(this.editingService),
+                    body: JSON.stringify(this.newService),
                 });
 
                 if (response.ok) {
                     const newService = await response.json();
                     this.services.push(newService);
 
-                    this.editingService = {
+                    this.newService = {
                         name: '',
                         price: '',
                         description: '',
