@@ -18,6 +18,14 @@ app.use(session({
     saveUninitialized: true,
 }));
 
+let services = [];
+try {
+    const servicesData = fs.readFileSync('services.json');
+    services = JSON.parse(servicesData);
+} catch (error) {
+    console.error('Error loading services:', error);
+}
+
 let users = [];
 try {
     const usersData = fs.readFileSync('users.json');
@@ -39,6 +47,7 @@ app.get('/check-login', (req, res) => {
         res.status(200).json({
             isLoggedIn: true,
             user: req.session.user,
+            isAdmin: req.session.user.isAdmin || 0,
         });
     } else {
         res.status(200).json({
@@ -74,7 +83,7 @@ app.post('/register', (req, res) => {
 
     fs.writeFileSync('users.json', JSON.stringify(users, null, 2));
 
-    req.session.user = { id: newUser.id, name, permissions: 0 };
+    req.session.user = { id: newUser.id, name: newUser.name, permissions: 0 };
 
     res.status(201).send({ message: 'Registration successful', user: newUser });
 });
@@ -92,7 +101,7 @@ app.post('/login', (req, res) => {
         return res.status(401).send({ error: 'Invalid email or password' });
     }
 
-    req.session.user = { id: user.id, email, isAdmin: user.permissions };
+    req.session.user = { id: user.id, name: user.name, email: user.email, isAdmin: user.permissions };
 
     res.send({ message: 'Login successful', user });
 });
@@ -101,11 +110,13 @@ app.get('/get-user-info', (req, res) => {
     if (req.session.user) {
         const userInfo = {
             id: req.session.user.id,
+            name: req.session.user.name,
             email: req.session.user.email,
             isAdmin: req.session.user.isAdmin || 0,
         };
         res.status(200).json(userInfo);
     } else {
+        window.location.href = 'login.html';
         res.status(401).send({ error: 'User not authenticated' });
     }
 });
@@ -151,6 +162,7 @@ app.post('/reservations', (req, res) => {
 
     const reservation = {
         id: newId,
+        clientId: req.session.user.id,
         username: req.session.user.username,
         phoneNumber: req.body.phoneNumber,
         name: req.body.name,
@@ -204,6 +216,7 @@ app.put('/reservations/:id', (req, res) => {
 
     reservations[index] = {
         id: id,
+        clientId: req.session.user.id,
         username: req.session.user.username,
         phoneNumber: updatedReservation.phoneNumber,
         name: updatedReservation.name,
@@ -214,6 +227,88 @@ app.put('/reservations/:id', (req, res) => {
     };
 
     res.send(reservations[index]);
+});
+
+app.get('/services', (req, res) => {
+    res.send(services);
+});
+
+app.get('/services/:id', (req, res) => {
+    const service = services.find(s => s.id === req.params.id);
+
+    if (!service) {
+        return res.status(404).send({ error: "Service not found" });
+    }
+
+    res.send(service);
+});
+
+app.post('/services', (req, res) => {
+    const { name, price, description, duration } = req.body;
+
+    if (!name || !price || !description || !duration) {
+        return res.status(400).send({ error: 'One or all params are missing' });
+    }
+
+    const newId = (parseInt(services[services.length - 1].id) + 1).toString();
+
+    const newService = {
+        id: newId,
+        name,
+        price,
+        description,
+        duration,
+    };
+
+    services.push(newService);
+
+    fs.writeFileSync('services.json', JSON.stringify(services, null, 2));
+
+    res.status(201)
+        .location(`${getBaseUrl(req)}/services/${newId}`)
+        .send(newService);
+});
+
+app.put('/services/:id', (req, res) => {
+    const id = req.params.id;
+    const updatedService = req.body;
+
+    if (!updatedService.name || !updatedService.price || !updatedService.description || !updatedService.duration) {
+        return res.status(400).send({ error: 'One or all params are missing' });
+    }
+
+    const index = services.findIndex(s => s.id === id);
+
+    if (index === -1) {
+        return res.status(404).send({ error: "Service not found" });
+    }
+
+    services[index] = {
+        id: id,
+        name: updatedService.name,
+        price: updatedService.price,
+        description: updatedService.description,
+        duration: updatedService.duration,
+    };
+
+    fs.writeFileSync('services.json', JSON.stringify(services, null, 2));
+
+    res.send(services[index]);
+});
+
+app.delete('/services/:id', (req, res) => {
+    const id = req.params.id;
+    const index = services.findIndex(s => s.id === id);
+
+    if (index === -1) {
+        return res.status(404).send({ error: "Service not found" });
+    }
+
+    services.splice(index, 1);
+
+    fs.writeFileSync('services.json', JSON.stringify(services, null, 2));
+
+    res.status(204).send();
 });
 
 app.use('/docs', swaggerUi.serve, swaggerUi.setup(swaggerDocument));

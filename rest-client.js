@@ -4,24 +4,26 @@ const app = Vue.createApp({
             reservations: [],
             newReservation: {
                 phoneNumber: '',
-                name: 'фцв',
-                time: '',
+                name: '',
                 salon: '',
                 service: '',
+                time: '',
                 carNumber: '',
             },
             services: [],
+            newUsers: [],
+            newService: {},
             editingReservation: null,
             isEditing: false,
             isAdmin: 0,
             userId: null,
-            userName: null
+            userName: null,
         };
     },
-    async mounted() {
+    async created() {
         await this.loadServices();
         await this.loadUser();
-        //this.newReservation.name = this.userName;
+        this.newReservation.name = this.userName;
         this.reservations = await (await fetch('http://localhost:8080/reservations')).json();
     },
     methods: {
@@ -32,7 +34,7 @@ const app = Vue.createApp({
                     const userData = await response.json();
                     this.isAdmin = userData.isAdmin ? 1 : 0;
                     this.userId = userData.id;
-                    userName = this.userName;
+                    this.userName = userData.name;
                 } else {
                     console.error('Error loading user data:', response.statusText);
                 }
@@ -85,9 +87,9 @@ const app = Vue.createApp({
                     this.newReservation = {
                         phoneNumber: '',
                         name: '',
-                        time: '',
                         salon: '',
                         service: '',
+                        time: '',
                         carNumber: ''
                     };
                 }
@@ -150,6 +152,12 @@ const app = Vue.createApp({
                 console.error('Error logging out:', error);
             }
         },
+        async goToServices() {
+            window.location.href='services.html';
+        },
+        async goToIndex() {
+            window.location.href='index.html';
+        },
         async loadServices() {
             try {
                 const response = await fetch('services.json');
@@ -161,6 +169,75 @@ const app = Vue.createApp({
             } catch (error) {
                 console.error('Error loading services:', error);
             }
-        }
+        },
+        async saveServiceEdit(service) {
+            try {
+                const response = await fetch(`http://localhost:8080/services/${service.id}`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(service)
+                });
+
+                if (response.ok) {
+                    const updatedService = await response.json();
+                    const index = this.services.findIndex(s => s.id === service.id);
+                    if (index !== -1) {
+                        this.services[index] = updatedService;
+                    }
+                } else {
+                    console.error('Error saving service edit:', response.statusText);
+                }
+            } catch (error) {
+                console.error('Error saving service edit:', error);
+            }
+        },
+        async deleteService(serviceId) {
+            try {
+                await fetch(`http://localhost:8080/services/${serviceId}`, {
+                    method: 'DELETE'
+                });
+                this.services = this.services.filter(service => service.id !== serviceId);
+            } catch (error) {
+                console.error('Error deleting service:', error);
+            }
+        },
+        editService(service) {
+            this.editingService = { ...service };
+            this.isEditing = true;
+        },
+        async saveNewService() {
+            if (!this.editingService.name || !this.editingService.price || !this.editingService.description || !this.editingService.duration) {
+                alert('Please fill in all fields with valid data.');
+                return;
+            }
+
+            try {
+                const response = await fetch('http://localhost:8080/services', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(this.editingService),
+                });
+
+                if (response.ok) {
+                    const newService = await response.json();
+                    this.services.push(newService);
+
+                    this.editingService = {
+                        name: '',
+                        price: '',
+                        description: '',
+                        duration: '',
+                    };
+                } else {
+                    console.error('Error saving new service:', response.statusText);
+                }
+            } catch (error) {
+                console.error('Error saving new service:', error);
+            }
+        },
     }
 }).mount('#app');
