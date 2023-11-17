@@ -14,7 +14,7 @@ const app = Vue.createApp({
             newService: {
                 id: '',
                 name: '',
-                price: '',
+                price: '1',
                 description: '',
                 duration: ''
             },
@@ -22,13 +22,11 @@ const app = Vue.createApp({
             editingService: null,
             isEditing: false,
             isAdmin: 0,
-            userId: null,
-            userName: null
+            userId: null
         };
     },
     async mounted() {
         await this.loadUser();
-        //this.newReservation.name = this.userName;
         this.reservations = await (await fetch('http://localhost:8080/reservations')).json();
         this.services = await (await fetch('http://localhost:8080/services')).json();
     },
@@ -40,7 +38,7 @@ const app = Vue.createApp({
                     const userData = await response.json();
                     this.isAdmin = userData.isAdmin ? 1 : 0;
                     this.userId = userData.id;
-                    userName = this.userName;
+                    this.newReservation.name = userData.name;
                 } else {
                     console.error('Error loading user data:', response.statusText);
                 }
@@ -62,6 +60,22 @@ const app = Vue.createApp({
                 this.reservations = this.reservations.filter(reservation => reservation.id !== id);
             } catch (error) {
                 console.error('Couldnt delete a reservation:', error);
+            }
+        },
+        deleteService: async function (id) {
+            const serviceToDelete = this.services.find(service => service.id === id);
+            if (!serviceToDelete) {
+                console.error('Service was not found:', id);
+                return;
+            }
+
+            try {
+                await fetch(`http://localhost:8080/services/${id}`, {
+                    method: 'DELETE'
+                });
+                this.services = this.services.filter(service => service.id !== id);
+            } catch (error) {
+                console.error('Couldnt delete a service:', error);
             }
         },
         async addReservation() {
@@ -103,6 +117,35 @@ const app = Vue.createApp({
                 console.error('Unable to add a new reservation:', error);
             }
         },
+        async addService() {
+            if (!this.newService.name || !this.newService.price || !this.newService.description || !this.newService.duration) {
+                alert('Please fill in all fields with valid data.');
+                return;
+            }
+
+            try {
+                const response = await fetch('http://localhost:8080/services', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(this.newService)
+                });
+
+                if (response.ok) {
+                    const newService = await response.json();
+                    this.services.push(newService);
+                    this.newService = {
+                        name: '',
+                        price: '',
+                        description: '',
+                        duration: '',
+                    };
+                }
+            } catch (error) {
+                console.error('Unable to add a new service:', error);
+            }
+        },
         editReservation(reservation) {
             this.editingReservation = { ...reservation };
             const selectedService = this.services.find(service => service.name == this.editingReservation.service.name);
@@ -115,8 +158,16 @@ const app = Vue.createApp({
         
             this.isEditing = true;
         },
+        editService(service) {
+            this.editingService = { ...service };
+            this.isEditing = true;
+        },
         cancelEdit() {
             this.editingReservation = null;
+            this.isEditing = false;
+        },
+        cancelEditService() {
+            this.editingService = null;
             this.isEditing = false;
         },
         async saveEdit(reservation) {
@@ -138,6 +189,30 @@ const app = Vue.createApp({
         
                     this.isEditing = false;
                     this.editingReservation = null;
+                }
+            } catch (error) {
+                console.error('Unable to save edit:', error);
+            }
+        },
+        async saveEditService(service) {
+            try {
+                const response = await fetch(`http://localhost:8080/services/${service.id}`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(this.editingService)
+                });
+
+                if (response.ok) {
+                    const updatedService = await response.json();
+                    const index = this.services.findIndex(r => r.id === service.id);
+                    if (index !== -1) {
+                        this.services[index] = updatedService;
+                    }
+
+                    this.isEditing = false;
+                    this.editingService = null;
                 }
             } catch (error) {
                 console.error('Unable to save edit:', error);

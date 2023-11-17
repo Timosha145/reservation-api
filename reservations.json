@@ -3,7 +3,7 @@
         "id": "1",
         "clientId": "2",
         "phoneNumber": "+37245678988",
-        "name": "Boris Borisov",
+        "name": "Email Emailov",
         "time": "2023-10-11 12:34",
         "salon": "Salon A",
         "service": {
@@ -31,9 +31,9 @@
     },
     {
         "id": "3",
-        "clientId": "0",
+        "clientId": "2",
         "phoneNumber": "+37212345678",
-        "name": "Alice Johnson",
+        "name": "Email Emailov",
         "time": "2023-09-15 10:15",
         "salon": "Salon A",
         "service": {

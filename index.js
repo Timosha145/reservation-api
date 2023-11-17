@@ -101,7 +101,7 @@ app.post('/login', (req, res) => {
         return res.status(401).send({ error: 'Invalid email or password' });
     }
 
-    req.session.user = { id: user.id, email, isAdmin: user.permissions };
+    req.session.user = { name: user.name, id: user.id, email, isAdmin: user.permissions };
 
     res.send({ message: 'Login successful', user });
 });
@@ -110,11 +110,13 @@ app.get('/get-user-info', (req, res) => {
     if (req.session.user) {
         const userInfo = {
             id: req.session.user.id,
+            name: req.session.user.name,
             email: req.session.user.email,
             isAdmin: req.session.user.isAdmin || 0,
         };
         res.status(200).json(userInfo);
     } else {
+        window.location.href = 'login.html';
         res.status(401).send({ error: 'User not authenticated' });
     }
 });
@@ -132,9 +134,7 @@ app.use((req, res, next) => {
 });
 
 app.get('/reservations', (req, res) => {
-    const userReservations = reservations;
-
-    res.send(userReservations);
+    res.send(reservations);
 });
 
 app.get('/services', (req, res) => {
@@ -153,6 +153,20 @@ app.get('/reservations/:id', (req, res) => {
     }
 
     res.send(reservation);
+});
+
+app.get('/services/:id', (req, res) => {
+    const service = services.find(r => r.id === req.params.id);
+
+    if (!service) {
+        return res.status(404).send({ error: "Service not found" });
+    }
+
+    if (!req.session.user.isAdmin && reservation.username !== req.session.user.username) {
+        return res.status(403).send({ error: "Access forbidden" });
+    }
+
+    res.send(service);
 });
 
 app.post('/reservations', (req, res) => {
@@ -180,6 +194,28 @@ app.post('/reservations', (req, res) => {
         .send(reservation);
 });
 
+app.post('/services', (req, res) => {
+    if (!req.body.name || !req.body.price || !req.body.description || !req.body.duration) {
+        return res.status(400).send({ error: 'One or all params are missing' });
+    }
+
+    const newId = (parseInt(services[services.length - 1].id) + 1).toString();
+
+    const service = {
+        id: newId,
+        name: req.body.name,
+        price: req.body.price,
+        description: req.body.description,
+        duration: req.body.duration,
+    };
+
+    services.push(service);
+
+    res.status(201)
+        .location(`${getBaseUrl(req)}/services/${newId}`)
+        .send(service);
+});
+
 app.delete('/reservations/:id', (req, res) => {
     const id = req.params.id;
     const index = reservations.findIndex(r => r.id === id);
@@ -193,6 +229,23 @@ app.delete('/reservations/:id', (req, res) => {
     }
 
     reservations.splice(index, 1);
+
+    res.status(204).send();
+});
+
+app.delete('/services/:id', (req, res) => {
+    const id = req.params.id;
+    const index = services.findIndex(s => s.id === id);
+
+    if (index === -1) {
+        return res.status(404).send({ error: "Service not found" });
+    }
+
+    if (!req.session.user.isAdmin && reservations[index].username !== req.session.user.username) {
+        return res.status(403).send({ error: "Access forbidden" });
+    }
+
+    services.splice(index, 1);
 
     res.status(204).send();
 });
@@ -227,6 +280,35 @@ app.put('/reservations/:id', (req, res) => {
     };
 
     res.send(reservations[index]);
+});
+
+app.put('/services/:id', (req, res) => {
+    const id = req.params.id;
+    const updatedService = req.body;
+
+    if (!updatedService.name || !updatedService.price || !updatedService.description || !updatedService.duration) {
+        return res.status(400).send({ error: 'One or all params are missing' });
+    }
+
+    const index = services.findIndex(s => s.id === id);
+
+    if (index === -1) {
+        return res.status(404).send({ error: "Service not found" });
+    }
+
+    if (!req.session.user.isAdmin && reservations[index].username !== req.session.user.username) {
+        return res.status(403).send({ error: "Access forbidden" });
+    }
+
+    services[index] = {
+        id: id,
+        name:  updatedService.name,
+        price: updatedService.price,
+        description: updatedService.description,
+        duration: updatedService.duration,
+    };
+
+    res.send(services[index]);
 });
 
 app.use('/docs', swaggerUi.serve, swaggerUi.setup(swaggerDocument));
