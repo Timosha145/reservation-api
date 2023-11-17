@@ -34,6 +34,15 @@ try {
     console.error('Error loading reservations:', error);
 }
 
+let services = [];
+try {
+    const servicesData = fs.readFileSync('services.json');
+    services = JSON.parse(servicesData);
+} catch (error) {
+    console.error('Error loading services:', error);
+}
+
+
 app.get('/check-login', (req, res) => {
     if (req.session.user) {
         res.status(200).json({
@@ -126,6 +135,10 @@ app.get('/reservations', (req, res) => {
     const userReservations = reservations;
 
     res.send(userReservations);
+});
+
+app.get('/services', (req, res) => {
+    res.send(services);
 });
 
 app.get('/reservations/:id', (req, res) => {

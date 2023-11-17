@@ -2,16 +2,24 @@ const app = Vue.createApp({
     data() {
         return {
             reservations: [],
+            services: [],
             newReservation: {
                 phoneNumber: '',
-                name: 'фцв',
+                name: '',
                 time: '',
                 salon: '',
                 service: '',
                 carNumber: '',
             },
-            services: [],
+            newService: {
+                id: '',
+                name: '',
+                price: '',
+                description: '',
+                duration: ''
+            },
             editingReservation: null,
+            editingService: null,
             isEditing: false,
             isAdmin: 0,
             userId: null,
@@ -19,10 +27,10 @@ const app = Vue.createApp({
         };
     },
     async mounted() {
-        await this.loadServices();
         await this.loadUser();
         //this.newReservation.name = this.userName;
         this.reservations = await (await fetch('http://localhost:8080/reservations')).json();
+        this.services = await (await fetch('http://localhost:8080/services')).json();
     },
     methods: {
         async loadUser() {
@@ -150,17 +158,11 @@ const app = Vue.createApp({
                 console.error('Error logging out:', error);
             }
         },
-        async loadServices() {
-            try {
-                const response = await fetch('services.json');
-                if (response.ok) {
-                    this.services = await response.json();
-                } else {
-                    console.error('Error loading services:', response.statusText);
-                }
-            } catch (error) {
-                console.error('Error loading services:', error);
-            }
-        }
+        async goToServices() {
+            window.location.href='services.html';
+        },
+        async goToIndex() {
+            window.location.href='index.html';
+        },
     }
 }).mount('#app');
